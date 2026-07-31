@@ -83,29 +83,32 @@ unreachable. Failed write-backs stay visible and retryable from the office score
 
 ### Configuration
 
-Outbound email is **off until configured**, and the technician's screen says so rather
-than silently dropping reports.
+Everything is configured **inside the app**, under **Setup → "Customer email delivery"**.
+There are no hosting-platform variables to set: values save to the data directory, take
+effect on the next send, and survive a redeploy. That matters for a franchise pilot — a
+territory changes its own sending mailbox without anyone touching a deployment.
+
+Outbound email is **off until configured**, and the technician's screen says so rather than
+silently dropping reports.
+
+| Setting | Notes |
+|---|---|
+| Send email using | `Resend` (HTTPS, nothing to open on the host) or `SMTP` (a mailbox you already own). Leave blank with a key filled in and the right provider is inferred. |
+| Send reports from | Required. Must be an address the provider is allowed to send as. |
+| Customer replies go to | Optional; defaults to the from address. |
+| Resend API key | From resend.com → API keys. Blank leaves the saved key untouched. |
+| SMTP server / port / username / password | Use an **app password** — Microsoft 365 and Google Workspace both reject the account password, and M365 disables SMTP AUTH on a mailbox until an admin enables it. |
+| SMTP uses implicit TLS | On for port 465, off for 587. |
+| Public address of this app | Builds the "view your report online" link. Blank simply omits the link; the attached PDF is unaffected. |
+
+Verify a real send end to end with:
 
 ```bash
-# Option A — Resend (HTTP, no SMTP egress needed)
-EMAIL_PROVIDER=resend
-RESEND_API_KEY=re_...
-
-# Option B — existing mail provider (Microsoft 365, Google Workspace, …)
-EMAIL_PROVIDER=smtp
-SMTP_HOST=smtp.office365.com
-SMTP_PORT=587
-SMTP_USER=reports@yourdomain.com
-SMTP_PASSWORD=...
-
-# Required either way
-EMAIL_FROM_ADDRESS="Mr. Handyman of Richmond <reports@yourdomain.com>"
-EMAIL_REPLY_TO=office@yourdomain.com
-PUBLIC_APP_URL=https://your-app-host        # builds the "view online" link
+pnpm email:test you@example.com
 ```
 
-ServiceTitan write-back uses credentials the app already holds, plus
-`SERVICETITAN_NOTES_PATH` (defaulted to `/crm/v2/tenant/{tenantId}/customers/{customerId}/notes`).
+ServiceTitan write-back uses credentials the app already holds, plus the customer notes
+path (defaulted to `/crm/v2/tenant/{tenantId}/customers/{customerId}/notes`).
 
 ## Pilot measurement
 
